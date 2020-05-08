@@ -24,7 +24,7 @@ class Kohana_Flexiblemigrations
 		$this->_config = Kohana::$config->load('flexiblemigrations')->as_array();
 	}
 
-	public function get_config() 
+	public function get_config()
 	{
 		return $this->_config;
 	}
@@ -33,28 +33,28 @@ class Kohana_Flexiblemigrations
 	 * Run all pending migrations
 	 *
 	 */
-	public function migrate() 
+	public function migrate()
 	{
 		$migration_keys = $this->get_migration_keys();
 		$migrations 	= ORM::factory('migration')->find_all();
 		$messages		= array();
 
 		//Remove executed migrations from queue
-		foreach ($migrations as $migration) 
+		foreach ($migrations as $migration)
 		{
-			if (array_key_exists($migration->hash, $migration_keys)) 
+			if (array_key_exists($migration->hash, $migration_keys))
 			{
 				unset($migration_keys[$migration->hash]);
 			}
 		}
 
-		if (count($migration_keys) > 0) 
+		if (count($migration_keys) > 0)
 		{
-			foreach ($migration_keys as $key => $value) 
+			foreach ($migration_keys as $key => $value)
 			{
 				$msg = "Executing migration: '" . $value . "' with hash: " .$key;
-				
-				try 
+
+				try
 				{
 					$migration_object = $this->load_migration($key);
 					$migration_object->up();
@@ -78,20 +78,20 @@ class Kohana_Flexiblemigrations
 	 * Rollback last executed migration.
 	 *
 	 */
-	public function rollback() 
+	public function rollback()
 	{
 		//Get last executed migration
 		$model		= ORM::factory('migration')->order_by('created_at','DESC')->order_by('hash','DESC')->limit(1)->find();
 		$messages	= array();
 
-		if ($model->loaded()) 
+		if ($model->loaded())
 		{
-			try 
+			try
 			{
 				$migration_object = $this->load_migration($model->hash);
 				$migration_object->down();
 
-				if ($model) 
+				if ($model)
 				{
 					$msg = "Migration '" . $model->name . "' with hash: " . $model->hash . ' was succefully "rollbacked"';
 					$messages[] = array(0 => $msg);
@@ -100,12 +100,12 @@ class Kohana_Flexiblemigrations
 				}
 				$model->delete();
 			}
-			catch (Exception $e) 
+			catch (Exception $e)
 			{
 				$messages[] = array(1 => $e->getMessage());
 			}
 		}
-		else 
+		else
 		{
 			$messages[] = array(1 => "There's no migration to rollback");
 		}
@@ -117,7 +117,7 @@ class Kohana_Flexiblemigrations
 	 * Rollback last executed migration.
 	 *
 	 */
-	public function get_timestamp() 
+	public function get_timestamp()
 	{
 		return date('YmdHis');
 	}
@@ -127,13 +127,13 @@ class Kohana_Flexiblemigrations
 	 *
 	 * @return array migrations_filenames
 	 */
-	public function get_migrations()	
+	public function get_migrations()
 	{
 		$migrations = glob($this->_config['path'].'*'.EXT);
 		foreach ($migrations as $i => $file)
 		{
 			$name = basename($file, EXT);
-			if (!preg_match('/^\d{14}_(\w+)$/', $name)) //Check filename format
+			if (!preg_match('/^\d{14}_([\w-]+)$/', $name)) //Check filename format
 				unset($migrations[$i]);
 		}
 		sort($migrations);
@@ -146,7 +146,7 @@ class Kohana_Flexiblemigrations
 	 *
 	 * @return integer completion_code
 	 */
-	public function generate_migration($migration_name)	
+	public function generate_migration($migration_name)
 	{
 		try
 		{
@@ -154,7 +154,7 @@ class Kohana_Flexiblemigrations
 			$file_name 	= $this->get_timestamp(). '_' . $migration_name . '.php';
 			$config 	= $this->get_config();
 			$file 		= fopen($config['path'].$file_name, 'w+');
-			
+
 			//Opens the template file and replaces the name
 			$view = new View('migration_template');
 			$view->set_global('migration_name', $migration_name);
@@ -167,18 +167,18 @@ class Kohana_Flexiblemigrations
 		{
 			return 1;
 		}
-	}	
+	}
 
 	/**
 	 * Get all migration keys (timestamps)
 	 *
 	 * @return array migrations_keys
 	 */
-	protected function get_migration_keys() 
+	protected function get_migration_keys()
 	{
 		$migrations = $this->get_migrations();
 		$keys = array();
-		foreach ($migrations as $migration) 
+		foreach ($migrations as $migration)
 		{
 			$sub_migration = substr(basename($migration, EXT), 0, 14);
 			$keys = Arr::merge($keys, array($sub_migration => substr(basename($migration, EXT), 15)));
@@ -191,7 +191,7 @@ class Kohana_Flexiblemigrations
 	 *
 	 * @return Migration object with up and down functions
 	 */
-	protected function load_migration($version) 
+	protected function load_migration($version)
 	{
 		$f = glob($this->_config['path'].$version.'*'. EXT);
 
