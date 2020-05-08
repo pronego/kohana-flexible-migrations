@@ -51,8 +51,8 @@ class Controller_Flexiblemigrations extends Kohana_Controller_Template {
 
 	public function action_index()
 	{
-		$migrations=$this->migrations->get_migrations();
-		rsort($migrations);
+		$migrations = $this->migrations->get_migrations();
+		krsort($migrations);
 
 		//Get migrations already runned from the DB
 		$migrations_runned = ORM::factory('Migration')->find_all()->as_array('hash');
