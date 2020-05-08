@@ -185,7 +185,7 @@ class Kohana_Flexiblemigrations
             $view->set_global('migration_name', $migration_name);
             fwrite($file, $view);
             fclose($file);
-            chmod($config['path'].$file_name, 0770);
+            chmod(APPPATH.$config['path'].DIRECTORY_SEPARATOR.$file_name, 0770);
 
             return 0;
         } catch (Exception $e) {
