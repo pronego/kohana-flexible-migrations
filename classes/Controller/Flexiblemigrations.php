@@ -19,15 +19,15 @@ class Controller_Flexiblemigrations extends Kohana_Controller_Template {
   public $template = 'migrations';
   protected $view;
 
-	public function before() 
+	public function before()
 	{
 		// Before anything, checks module installation
 		$this->migrations = new Flexiblemigrations(TRUE);
-		try 
+		try
 		{
 			$this->model = ORM::factory('Migration');
-		} 
-		catch (Database_Exception $a) 
+		}
+		catch (Database_Exception $a)
 		{
 			echo 'Flexible Migrations is not installed. Please Run the migrations.sql script in your mysql server';
 			exit();
@@ -36,7 +36,15 @@ class Controller_Flexiblemigrations extends Kohana_Controller_Template {
 		parent::before();
 	}
 
-	public function action_index() 
+    public function after()
+    {
+        if ($this->auto_render === TRUE)
+        {
+            $this->response->body($this->template->render());
+        }
+    }
+
+	public function action_index()
 	{
 		$migrations=$this->migrations->get_migrations();
 		rsort($migrations);
@@ -51,45 +59,45 @@ class Controller_Flexiblemigrations extends Kohana_Controller_Template {
 		$this->template->view = $this->view;
 	}
 
-	public function action_new() 
+	public function action_new()
 	{
 		$this->view = new View('flexiblemigrations/new');
 		$this->template->view = $this->view;
 	}
 
-	public function action_create() 
+	public function action_create()
 	{
 		$migration_name = str_replace(' ','_',$_REQUEST['migration_name']);
 		$session = Session::instance();
-		
-		try 
+
+		try
 		{
-      		if (empty($migration_name)) 
+      		if (empty($migration_name))
       			throw new Exception("Migration mame must not be empty");
 
 			$this->migrations->generate_migration($migration_name);
 
 			//Sets a status message
 			$session->set('message', "Migration ".$migration_name." was succefully created. Check migrations folder");
-	    } 
-	    catch (Exception $e) 
-	    { 
+	    }
+	    catch (Exception $e)
+	    {
 			$session->set('message',  $e->getMessage());
 		}
 
 	 	$this->redirect(Route::get('migrations_route')->uri());
 	}
 
-	public function action_migrate() 
+	public function action_migrate()
 	{
 		$this->view = new View('flexiblemigrations/migrate');
 		$this->template->view = $this->view;
-	
+
 		$messages = $this->migrations->migrate();
 		$this->view->set_global('messages', $messages);
 	}
 
-	public function action_rollback() 
+	public function action_rollback()
 	{
 		$this->view = new View('flexiblemigrations/rollback');
 		$this->template->view = $this->view;
