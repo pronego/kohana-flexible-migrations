@@ -14,7 +14,7 @@
  * Reworked for Kohana by Jamie Madill
  *
  * @package		Migrations
- * @author		Matías Montes
+ * @author		Matï¿½as Montes
  * @author    Jamie Madill
  */
 
@@ -22,11 +22,11 @@ class Migration
 {
 	protected $driver;
 	protected $db;
-	
+
 	// Override these two parameters to set behaviour of your migration
-	public $group = 'default';
+	public $group = 'write';
 	public $output = FALSE;
-	
+
 	public function __construct($output = FALSE, $group = 'default')
 	{
 		$this->db = Database::instance($this->group);
@@ -34,26 +34,26 @@ class Migration
 		$platform = 'mysql'; // $this->db->platform();
 		if ($platform = 'mysqli')
 			$platform = 'mysql';
-		
+
 		// Set driver name
 		$driver = 'Drivers_Mysql';
-		
+
 		// Load the driver
 		//if ( ! Kohana::auto_load($driver)) {
 		//	throw new Kohana_Database_Exception('core.driver_not_found', $platform, get_class($this));
 		//}
-		
+
 		$this->driver = new $driver($group, $this->db);
 		$this->output = $output;
 		$this->group  = $group;
 	}
-	
+
 	protected function log($string)
 	{
 		if ($this->output)
 			echo $string;
 	}
-	
+
 	public function up()
 	{
 		throw new Kohana_Exception('migrations.abstract');
@@ -63,7 +63,7 @@ class Migration
 	{
 		throw new Kohana_Exception('migrations.abstract');
 	}
-	
+
 	/**
 	 * Create Table
 	 *
@@ -132,7 +132,7 @@ class Migration
 		$this->log("DONE<br />");
 		return $ret;
 	}
-	
+
 	/**
 	 * Add a column to a table
 	 *
@@ -151,7 +151,7 @@ class Migration
 		$this->log("DONE<br />");
 		return $ret;
 	}
-	
+
 	/**
 	 * Rename a column
 	 *
@@ -167,7 +167,7 @@ class Migration
 		$this->log("DONE<br />");
 		return $ret;
 	}
-	
+
 	/**
 	 * Alter a column
 	 *
@@ -183,7 +183,7 @@ class Migration
 		$this->log("DONE<br />");
 		return $ret;
 	}
-	
+
 	/**
 	 * Remove a column from a table
 	 *
@@ -245,6 +245,6 @@ class Migration
 	public function commit()
 	{
 		$this->driver->run_query('COMMIT');
-	}	
+	}
 
 }

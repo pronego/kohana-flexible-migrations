@@ -21,6 +21,11 @@ class Controller_Flexiblemigrations extends Kohana_Controller_Template {
 
 	public function before()
 	{
+        if ( ! Auth::instance()->get_user()->has('roles', ORM::factory('Role', array('name' => 'admin'))))
+        {
+            HTTP::redirect('/');
+        }
+
 		// Before anything, checks module installation
 		$this->migrations = new Flexiblemigrations(TRUE);
 		try

@@ -56,11 +56,14 @@ class Kohana_Flexiblemigrations
 
 				try
 				{
+				    $now = date('Y-m-d', time());
 					$migration_object = $this->load_migration($key);
 					$migration_object->up();
 					$model = ORM::factory('migration');
 					$model->hash = $key;
 					$model->name = $value;
+					$model->created_at = $now;
+                    $model->updated_at = $now;
 					$model->save();
 					$model ? $messages[] = array(0 => $msg) : $messages[] = array(1 => $msg);
 				}
@@ -93,7 +96,7 @@ class Kohana_Flexiblemigrations
 
 				if ($model)
 				{
-					$msg = "Migration '" . $model->name . "' with hash: " . $model->hash . ' was succefully "rollbacked"';
+					$msg = "Migration '" . $model->name . "' with hash: " . $model->hash . ' was succesfully "rolled back"';
 					$messages[] = array(0 => $msg);
 				} else {
 					$messages[] = array(1 => "Error executing rollback");
@@ -133,7 +136,7 @@ class Kohana_Flexiblemigrations
 		foreach ($migrations as $i => $file)
 		{
 			$name = basename($file, EXT);
-			if (!preg_match('/^\d{14}_([\w-]+)$/', $name)) //Check filename format
+			if (!preg_match('/^\d{14}_(\w+)$/', $name)) //Check filename format
 				unset($migrations[$i]);
 		}
 		sort($migrations);
