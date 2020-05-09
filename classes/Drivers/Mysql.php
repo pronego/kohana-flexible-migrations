@@ -18,7 +18,7 @@ class Drivers_Mysql extends Drivers_Driver
 		$this->db->query($this->group, 'COMMIT', false);
 	}
 
-	public function create_table($table_name, $fields, $primary_key = TRUE)
+	public function create_table($table_name, $fields, $primary_key = TRUE, $engine = 'InnoDB')
 	{
 		$sql = "CREATE TABLE `$table_name` (";
 
@@ -55,7 +55,7 @@ class Drivers_Mysql extends Drivers_Driver
 			$sql .= ')';
 		}
 
-		$sql .= ")";
+		$sql .= ") ENGINE=".$engine;
 
 		return $this->run_query($sql);
 	}
@@ -136,6 +136,7 @@ class Drivers_Mysql extends Drivers_Driver
 		$auto   = FALSE;
 		$unsigned = FALSE;
         $comment = '';
+        $character_set = 'utf8 COLLATE utf8_general_ci';
 
 		foreach ($params as $key => $param)
 		{
@@ -163,6 +164,7 @@ class Drivers_Mysql extends Drivers_Driver
 					case 'auto':    $auto = (bool) $param; break;
 					case 'unsigned': $unsigned = $param; break;
                     case 'comment': $comment = "COMMENT '".$param."'"; break;
+                    case 'character_set': $character_set = $param; break;
 					default: throw new Kohana_Exception('migrations.bad_column :key', array(':key' => $key));
 				}
 				continue; // next iteration
@@ -200,6 +202,12 @@ class Drivers_Mysql extends Drivers_Driver
 		}
 
 		$sql  = " `$field_name` $type ";
+
+		// Add default character set
+		if ($type == 'text ' OR strpos($type, 'varchar') !== FALSE)
+        {
+            $sql .= ' CHARACTER SET '.$character_set;
+        }
 
 		if ($unsigned AND strpos($type, 'UNSIGNED') === FALSE) {
 			$sql .= ' UNSIGNED ';
