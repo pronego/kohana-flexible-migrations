@@ -278,7 +278,7 @@ class Drivers_Mysql extends Drivers_Driver
 				switch ($limit)
 				{
 					case 'big':    return 'bigint';
-					case 'normal': return 'int';
+					case 'normal': return 'int(10)';
 					case 'small':  return 'smallint';
 					default: break;
 				}
