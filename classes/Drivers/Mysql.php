@@ -5,6 +5,11 @@ class Drivers_Mysql extends Drivers_Driver
 	public function __construct($group, $db)
 	{
 		parent::__construct($group, $db);
+        $this->types += [
+            'enum' => 'enum',
+            'set' => 'set',
+            'double' => 'double',
+        ];
 		$this->db->query($group, 'START TRANSACTION', false);
 	}
 
@@ -12,7 +17,7 @@ class Drivers_Mysql extends Drivers_Driver
 	{
 		$this->db->query($this->group, 'COMMIT', false);
 	}
-	
+
 	public function create_table($table_name, $fields, $primary_key = TRUE)
 	{
 		$sql = "CREATE TABLE `$table_name` (";
@@ -23,16 +28,16 @@ class Drivers_Mysql extends Drivers_Driver
 			$primary_key = 'id';
 			$fields = array_merge(array('id' => array('integer', 'null' => FALSE)), $fields);
 		}
-		
+
 		foreach ($fields as $field_name => $params)
 		{
 			$params = (array) $params;
-			
+
 			if ($primary_key === $field_name AND $params[0] == 'integer')
 			{
 				$params['auto'] = TRUE;
 			}
-			
+
 			$sql .= $this->compile_column($field_name, $params);
 			$sql .= ",";
 		}
@@ -42,7 +47,7 @@ class Drivers_Mysql extends Drivers_Driver
 		if ($primary_key)
 		{
 			$sql .= ' , PRIMARY KEY (';
-			
+
 			foreach ( (array) $primary_key as $pk ) {
 				$sql .= " `$pk`,";
 			}
@@ -64,7 +69,7 @@ class Drivers_Mysql extends Drivers_Driver
 	{
 		return $this->run_query("RENAME TABLE `$old_name`  TO `$new_name` ;");
 	}
-	
+
 	public function add_column($table_name, $column_name, $params)
 	{
 		$sql = "ALTER TABLE `$table_name` ADD COLUMN " . $this->compile_column($column_name, $params, TRUE);
@@ -73,24 +78,24 @@ class Drivers_Mysql extends Drivers_Driver
 
 	public function rename_column($table_name, $column_name, $new_column_name, $params)
 	{
-	  if ($params == NULL) { 
+	  if ($params == NULL) {
 	    $params = $this->get_column($table_name, $column_name);
     }
 		$sql    = "ALTER TABLE `$table_name` CHANGE `$column_name` " . $this->compile_column($new_column_name, $params, TRUE);
 		return $this->run_query($sql);
 	}
-	
+
 	public function change_column($table_name, $column_name, $params)
 	{
 		$sql = "ALTER TABLE `$table_name` MODIFY " . $this->compile_column($column_name, $params);
 		return $this->run_query($sql);
 	}
-	
+
 	public function remove_column($table_name, $column_name)
 	{
 		return $this->run_query("ALTER TABLE $table_name DROP COLUMN $column_name ;");
 	}
-	
+
 	public function add_index($table_name, $index_name, $columns, $index_type = 'normal')
 	{
 		switch ($index_type)
@@ -98,17 +103,17 @@ class Drivers_Mysql extends Drivers_Driver
 			case 'normal':   $type = 'INDEX'; break;
 			case 'unique':   $type = 'UNIQUE KEY'; break;
 			case 'primary':  $type = 'PRIMARY KEY'; break;
-			
+
 			default: throw new Kohana_Exception('migrations.bad_index_type :index_type', array(':index_type' => $index_type));
 		}
-		
+
 		$sql = "ALTER TABLE `$table_name` ADD $type `$index_name` (";
-		
+
 		foreach ((array) $columns as $column)
 		{
 			$sql .= " `$column`,";
 		}
-		
+
 		$sql  = rtrim($sql, ',');
 		$sql .= ')';
 		return $this->run_query($sql);
@@ -118,18 +123,19 @@ class Drivers_Mysql extends Drivers_Driver
 	{
 		return $this->run_query("ALTER TABLE `$table_name` DROP INDEX `$index_name`");
 	}
-	
+
 	protected function compile_column($field_name, $params, $allow_order = FALSE)
 	{
 		if (empty($params))
 		{
 			throw new Kohana_Exception('migrations.missing_argument');
 		}
-		
+
 		$params = (array) $params;
 		$null   = TRUE;
 		$auto   = FALSE;
 		$unsigned = FALSE;
+        $comment = '';
 
 		foreach ($params as $key => $param)
 		{
@@ -141,7 +147,7 @@ class Drivers_Mysql extends Drivers_Driver
 				{
 					case 'after':   if ($allow_order) $order = "AFTER `$param`"; break;
 					case 'null':    $null = (bool) $param; break;
-					case 'default': 
+					case 'default':
 					    if (is_string($param)) {
   					    $default = 'DEFAULT ' . $this->db->escape($param);
 					    } else if (is_bool($param)) {
@@ -156,11 +162,12 @@ class Drivers_Mysql extends Drivers_Driver
 					  break;
 					case 'auto':    $auto = (bool) $param; break;
 					case 'unsigned': $unsigned = $param; break;
+                    case 'comment': $comment = "COMMENT '".$param."'"; break;
 					default: throw new Kohana_Exception('migrations.bad_column :key', array(':key' => $key));
 				}
 				continue; // next iteration
 			}
-			
+
 			// Split into param and args
 			if (is_string($param) AND preg_match('/^([^\[]++)\[(.+)\]$/', $param, $matches))
 			{
@@ -170,13 +177,14 @@ class Drivers_Mysql extends Drivers_Driver
 				// Replace escaped comma with comma
 				$args = str_replace('\,', ',', $args);
 			}
-			
+
+			// Translate type into native type
 			if ($this->is_type($param))
 			{
 				$type = $this->native_type($param, $args);
 				continue;
 			}
-			
+
 			switch ($param)
 			{
 				case 'first':   if ($allow_order) $order = 'FIRST'; continue 2;
@@ -193,17 +201,18 @@ class Drivers_Mysql extends Drivers_Driver
 
 		$sql  = " `$field_name` $type ";
 
-		if ($unsigned) {
+		if ($unsigned AND strpos($type, 'UNSIGNED') === FALSE) {
 			$sql .= ' UNSIGNED ';
 		}
 		isset($default)  and $sql .= " $default ";
 		$sql .= $null    ? ' NULL ' : ' NOT NULL ';
 		$sql .= $auto    ? ' AUTO_INCREMENT ' : '';
 		isset($order)    and $sql .= " $order ";
-		
+		$sql .= $comment;
+
 		return $sql;
 	}
-	
+
 	protected function get_column($table_name, $column_name)
 	{
 	  print "SHOW COLUMNS FROM `$table_name` LIKE '$column_name'";
@@ -214,19 +223,19 @@ class Drivers_Mysql extends Drivers_Driver
 		{
 			throw new Kohana_Exception('migrations.column_not_found :col_name, :table_name', array(':col_name' => $column_name, ':table_name' => $table_name));
 		}
-		
+
 		$result = $result->current();
 		$params = array($this->migration_type($result->Type));
-		
+
 		if ($result->Null == 'NO')
 			$params['null'] = FALSE;
 
 		if ($result->Default)
 			$params['default'] = $result->Default;
-			
+
 		if ($result->Extra == 'auto_increment')
 			$params['auto'] = TRUE;
-		
+
 		return $params;
 	}
 
@@ -242,19 +251,19 @@ class Drivers_Mysql extends Drivers_Driver
 			default: return "";
 		}
 	}
-	
+
 	protected function native_type($type, $limit)
 	{
 		if (!$this->is_type($type))
 		{
 			throw new Kohana_Exception('migrations.unknown_type :type', array(':type' => $type));
 		}
-		
+
  		if (empty($limit))
  		{
  			$limit = $this->default_limit($type);
  		}
- 		
+
  		switch ($type)
 		{
 			case 'integer':
@@ -266,13 +275,13 @@ class Drivers_Mysql extends Drivers_Driver
 					default: break;
 				}
 				throw new Kohana_Exception('migrations.unknown_type :type', array(':type' => $type));
-				
+
 			case 'string': return "varchar ($limit)";
-			case 'boolean': return 'tinyint (1)';
+			case 'boolean': return 'tinyint (1) UNSIGNED';
 			default: $limit and $limit = "($limit)"; return "$type $limit";
 		}
 	}
-	
+
 	protected function migration_type($native)
 	{
 		if (preg_match('/^([^\(]++)\((.+)\)$/', $native, $matches))
@@ -280,7 +289,7 @@ class Drivers_Mysql extends Drivers_Driver
 			$native = $matches[1];
 			$limit  = $matches[2];
 		}
-		
+
 		switch ($native)
 		{
 			case 'bigint':   return 'integer[big]';
@@ -290,12 +299,12 @@ class Drivers_Mysql extends Drivers_Driver
 			case 'tinyint':  return 'boolean';
 			default: break;
 		}
-		
+
 		if (!$this->is_type($native))
 		{
 			throw new Kohana_Exception('migrations.unknown_type :type', array(':type' => $type));
 		}
-		
+
 		return $native . "[$limit]";
 	}
 }
