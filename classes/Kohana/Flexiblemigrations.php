@@ -27,12 +27,15 @@ class Kohana_Flexiblemigrations
 
         // Create maintenance table migrations if it doesn't exist
         $cur_db = Kohana::$config->load('database.write.connection.database');
-        $db_exists = (bool) DB::query(NULL, "SELECT * FROM information_schema.tables WHERE table_name='migrations' AND table_schema='".$cur_db."'")->execute();
-        if ( ! $db_exists)
-        {
-            $dump = file_get_contents(Kohana::find_file(NULL, 'migrations', 'sql'));
-            DB::query(NULL, $dump)->execute();
+        try {
+            $db_exists = (bool) DB::query(NULL, "SELECT * FROM information_schema.tables WHERE table_name='migrations' AND table_schema='".$cur_db."'")->execute();
+            if ( ! $db_exists)
+            {
+                $dump = file_get_contents(Kohana::find_file(NULL, 'migrations', 'sql'));
+                DB::query(NULL, $dump)->execute();
+            }
         }
+        catch (Database_Exception $e) {}
     }
 
     public function get_config()
