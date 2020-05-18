@@ -20,7 +20,7 @@ class Drivers_Mysql extends Drivers_Driver
 
 	public function create_table($table_name, $fields, $primary_key = TRUE, $engine = 'InnoDB')
 	{
-		$sql = "CREATE TABLE `$table_name` (";
+		$sql = "CREATE TABLE IF NOT EXISTS `$table_name` (";
 
 		// add a default id column if we don't say not to
 		if ($primary_key === TRUE)
