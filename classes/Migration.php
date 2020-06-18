@@ -24,11 +24,19 @@ class Migration
 	protected $db;
 
 	// Override these two parameters to set behaviour of your migration
-	public $group = 'write';
+	public $group = NULL;
 	public $output = FALSE;
 
-	public function __construct($output = FALSE, $group = 'default')
+	public function __construct($output = FALSE, $group = NULL)
 	{
+	    if ($group)
+        {
+            $this->group = $group;
+        }
+	    else
+        {
+            $this->group = Migration::get_default_db_config();
+        }
 		$this->db = Database::instance($this->group);
 
 		$platform = 'mysql'; // $this->db->platform();
@@ -43,7 +51,7 @@ class Migration
 		//	throw new Kohana_Database_Exception('core.driver_not_found', $platform, get_class($this));
 		//}
 
-		$this->driver = new $driver($group, $this->db);
+		$this->driver = new $driver($this->group, $this->db);
 		$this->output = $output;
 		$this->group  = $group;
 	}
@@ -247,4 +255,15 @@ class Migration
 		$this->driver->run_query('COMMIT');
 	}
 
+
+    /**
+     * Helper function to retrieve the default db config key.
+     * Compatible with default Kohana and WMM.
+     *
+     * @return string
+     */
+    public static function get_default_db_config()
+    {
+        return (method_exists('Database', 'default_name') ? Database::default_name() : Database::$default);
+    }
 }
