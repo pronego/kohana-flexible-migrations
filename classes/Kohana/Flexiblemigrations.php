@@ -37,7 +37,8 @@ class Kohana_Flexiblemigrations
         }
         catch (Database_Exception $e)
         {
-            Kohana::$log->add(Log::ERROR, $e->getMessage(), NULL, ['exception' => $e]);
+            // Write full stacktrace to log and output message only
+            Kohana::$log->add(Log::ERROR, $e->getTraceAsString());
             echo $e->getMessage();
         }
     }
