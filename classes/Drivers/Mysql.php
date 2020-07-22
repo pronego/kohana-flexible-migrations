@@ -318,7 +318,7 @@ class Drivers_Mysql extends Drivers_Driver
 			case 'int':      return 'integer';
 			case 'varchar':  return "string[$limit]";
 			case 'tinyint':  return 'boolean';
-			default: break;
+            default: return $native; // keep as is
 		}
 
 		if (!$this->is_type($native))
