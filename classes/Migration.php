@@ -168,7 +168,7 @@ class Migration
 	 * @param   string  New name
 	 * @return  bool
 	 */
-	public function rename_column($table_name, $column_name, $new_column_name, $params)
+	public function rename_column($table_name, $column_name, $new_column_name, $params = NULL)
 	{
 		$this->log("Renaming column '$column_name' in table '$table_name' to '$new_column_name'...");
 		$ret = $this->driver->rename_column($table_name, $column_name, $new_column_name, $params);

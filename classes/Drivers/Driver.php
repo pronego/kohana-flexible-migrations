@@ -20,14 +20,14 @@ abstract class Drivers_Driver
 		'binary',
 		'boolean',
 	);
-	
+
 	/**
 	 * @var Database_Core
 	 */
 	protected $db;
 
 	protected $group;
-	
+
 	/**
 	 * Copy database object
 	 *
@@ -90,7 +90,7 @@ abstract class Drivers_Driver
 	 * @return  boolean
 	 */
 	abstract public function rename_table($old_name, $new_name);
-	
+
 	/**
 	 * Add a column to a table
 	 *
@@ -103,7 +103,7 @@ abstract class Drivers_Driver
 	 * @return  bool
 	 */
 	abstract public function add_column($table_name, $column_name, $params);
-	
+
 	/**
 	 * Rename a column
 	 *
@@ -113,7 +113,7 @@ abstract class Drivers_Driver
 	 * @return  bool
 	 */
 	abstract public function rename_column($table_name, $column_name, $new_column_name, $params);
-	
+
 	/**
 	 * Alter a column
 	 *
@@ -124,7 +124,7 @@ abstract class Drivers_Driver
 	 * @return  bool
 	 */
 	abstract public function change_column($table_name, $column_name, $params);
-	
+
 	/**
 	 * Remove a column from a table
 	 *
@@ -159,9 +159,9 @@ abstract class Drivers_Driver
 	 *
 	 * @return bool
 	 */
-	public function run_query($sql)
+	public function run_query($sql, $type = NULL, $as_object = FALSE)
 	{
-		$test = $this->db->query($this->group, $sql, false);
+		return $this->db->query($type, $sql, $as_object);
 	}
 
 	/**
@@ -173,5 +173,5 @@ abstract class Drivers_Driver
 	{
 		return isset($this->types[$type]);
 	}
-	
+
 }

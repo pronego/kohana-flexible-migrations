@@ -76,7 +76,7 @@ class Drivers_Mysql extends Drivers_Driver
 		return $this->run_query($sql);
 	}
 
-	public function rename_column($table_name, $column_name, $new_column_name, $params)
+	public function rename_column($table_name, $column_name, $new_column_name, $params = NULL)
 	{
 	  if ($params == NULL) {
 	    $params = $this->get_column($table_name, $column_name);
@@ -221,31 +221,40 @@ class Drivers_Mysql extends Drivers_Driver
 		return $sql;
 	}
 
-	protected function get_column($table_name, $column_name)
-	{
-	  print "SHOW COLUMNS FROM `$table_name` LIKE '$column_name'";
-		$result = $this->run_query("SHOW COLUMNS FROM `$table_name` LIKE '$column_name'");
 
+    protected function get_column($table_name, $column_name)
+    {
+        //print "SHOW COLUMNS FROM `$table_name` LIKE '$column_name'".PHP_EOL;
+        $result = $this->run_query("SHOW COLUMNS FROM `$table_name` LIKE '$column_name'", Database::SELECT, TRUE);
 
-		if ($result->count() !== 1)
-		{
-			throw new Kohana_Exception('migrations.column_not_found :col_name, :table_name', array(':col_name' => $column_name, ':table_name' => $table_name));
-		}
+        if ($result->count() !== 1)
+        {
+            throw new Kohana_Exception('migrations.column_not_found :col_name, :table_name', array(
+                ':col_name' => $column_name,
+                ':table_name' => $table_name
+            ));
+        }
 
-		$result = $result->current();
-		$params = array($this->migration_type($result->Type));
+        $result = $result->current();
+        $params = array($this->migration_type($result->Type));
 
-		if ($result->Null == 'NO')
-			$params['null'] = FALSE;
+        if ($result->Null == 'NO')
+        {
+            $params['null'] = FALSE;
+        }
 
-		if ($result->Default)
-			$params['default'] = $result->Default;
+        if ($result->Default)
+        {
+            $params['default'] = $result->Default;
+        }
 
-		if ($result->Extra == 'auto_increment')
-			$params['auto'] = TRUE;
+        if ($result->Extra == 'auto_increment')
+        {
+            $params['auto'] = TRUE;
+        }
 
-		return $params;
-	}
+        return $params;
+    }
 
 	protected function default_limit($type)
 	{
@@ -297,6 +306,10 @@ class Drivers_Mysql extends Drivers_Driver
 			$native = $matches[1];
 			$limit  = $matches[2];
 		}
+		elseif ($pos = strpos($native, '('))
+        {
+            $native = substr($native, 0, $pos);
+        }
 
 		switch ($native)
 		{
