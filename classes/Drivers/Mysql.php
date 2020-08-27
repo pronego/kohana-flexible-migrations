@@ -26,7 +26,7 @@ class Drivers_Mysql extends Drivers_Driver
 		if ($primary_key === TRUE)
 		{
 			$primary_key = 'id';
-			$fields = array_merge(array('id' => array('integer', 'null' => FALSE)), $fields);
+			$fields = array_merge(array('id' => array('integer', 'unsigned' => true, 'null' => FALSE)), $fields);
 		}
 
 		foreach ($fields as $field_name => $params)
