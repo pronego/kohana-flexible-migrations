@@ -70,7 +70,7 @@ class Kohana_Flexiblemigrations
                 $msg = "Executing migration: '".$value."' with hash: ".$key;
 
                 try {
-                    $now = date('Y-m-d', time());
+                    $now = date('Y-m-d H:i:s', time());
                     $migration_object = $this->load_migration($key, $value);
                     $migration_object->up();
                     $model = ORM::factory('migration');
