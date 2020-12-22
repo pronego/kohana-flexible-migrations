@@ -35,10 +35,10 @@ class Kohana_Flexiblemigrations
                 DB::query(NULL, $dump)->execute();
             }
         }
-        catch (Database_Exception $e)
+        catch (Exception $e)
         {
             // Write full stacktrace to log and output message only
-            Kohana::$log->add(Log::ERROR, $e->getTraceAsString());
+            //Kohana::$log->add(Log::ERROR, $e->getTraceAsString());
             echo $e->getMessage();
         }
     }
