@@ -103,6 +103,7 @@ class Drivers_Mysql extends Drivers_Driver
 			case 'normal':   $type = 'INDEX'; break;
 			case 'unique':   $type = 'UNIQUE KEY'; break;
 			case 'primary':  $type = 'PRIMARY KEY'; break;
+			case 'spatial':  $type = 'SPATIAL INDEX'; break;
 
 			default: throw new Kohana_Exception('migrations.bad_index_type :index_type', array(':index_type' => $index_type));
 		}
@@ -295,7 +296,9 @@ class Drivers_Mysql extends Drivers_Driver
 
 			case 'string': return "varchar ($limit)";
 			case 'boolean': return 'tinyint (1) UNSIGNED';
-			default: $limit and $limit = "($limit)"; return "$type $limit";
+			default:
+				$limit and $limit = "($limit)";
+				return "$type $limit";
 		}
 	}
 

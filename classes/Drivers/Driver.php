@@ -19,6 +19,7 @@ abstract class Drivers_Driver
 		'string',
 		'binary',
 		'boolean',
+		'point'
 	);
 
 	/**
