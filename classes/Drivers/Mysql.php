@@ -237,7 +237,16 @@ class Drivers_Mysql extends Drivers_Driver
         }
 
         $result = $result->current();
-        $params = array($this->migration_type($result->Type));
+        $type = $result->Type;
+
+        // Check for 'unsigned' and take over as parameter
+        if (strpos($type, 'unsigned') !== FALSE)
+        {
+            $params['unsigned'] = TRUE;
+            $type = str_replace(' unsigned', '', $type);
+        }
+
+        $params = array($this->migration_type($type));
 
         if ($result->Null == 'NO')
         {
@@ -288,7 +297,7 @@ class Drivers_Mysql extends Drivers_Driver
 				switch ($limit)
 				{
 					case 'big':    return 'bigint';
-					case 'normal': return 'int(10)';
+					case 'normal': return 'int';
 					case 'small':  return 'smallint';
 					default: break;
 				}
