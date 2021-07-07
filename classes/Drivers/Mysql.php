@@ -216,10 +216,10 @@ class Drivers_Mysql extends Drivers_Driver
 		isset($default)  and $sql .= " $default ";
 		$sql .= $null    ? ' NULL ' : ' NOT NULL ';
 		$sql .= $auto    ? ' AUTO_INCREMENT ' : '';
-		isset($order)    and $sql .= " $order ";
-		$sql .= $comment;
+        $sql .= $comment;
+        isset($order)    and $sql .= " $order ";
 
-		return $sql;
+        return $sql;
 	}
 
 
